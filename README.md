@@ -1,9 +1,11 @@
 # Connect
 
-Connect can translate American Sign Language (ASL) into English sentences. In order to solve this difficult problem, we 
+Connect can translate American Sign Language (ASL) into English sentences. In order to solve this problem, we 
 broke it down into several components - they are listed below.
 
-Components:
+Disclaimer: Since this app was written by two people at a Hackathon, the code is messy and disorganized. However, a lot of thoughts were put into the actual algorithms used. <br/>
+
+### Components:
 
 * High Quality Video Capture (gather raw input data): 
 The Microsoft Kinect is able to capture high quality, depth-sensitive video data.
@@ -21,16 +23,15 @@ Using this algorithm, contiguous frames were grouped together when they were bel
 Frames where no sign was detected were labelled as "empty frames" and were pruned.
 
 * Sign-to-word Prediction (interpreting data): 
-After delimiting one sign from another and pruning "empty" frames, we had sets of frames that each represents a word.
-We trained a multi-layer neural network using sets of 3D points countouring the hand over ~20 frames spread over the entire duration of the sign. This was done on Azure ML. The actual training data consisted of 60 video clips for each sign; 20 of which were used for cross-validation. On average, the cross-validation data scored 98% on accuracy.
+By delimiting one sign from another and pruning "empty" frames in between each sign, we were able to create several ordered sets. Each set contained 3D contour points, ordered based on the timestamp of the frame that the contour originated from. These 3D contour points were the features that we used for our machine learning. However, the number of elements were inconsistent across the sets. Therefore, for each frame, we only included a tenth of the contour points (about a third of the total points). In addition, we only used 20 frames from the entire duration of the sign. These frames were chosen such that the sign was broken up into equal intervals. With the above modifications, each and every sign now had a consistent number of 3D points/features. Using Azure ML, we trained a multi-layer neural network using 60 video clips for each sign; 20 of which were used for cross-validation. On average, the cross-validation data scored 98% on accuracy.
 
-* Performance Considerations (pruning unecessary data): Recording and analyzing 3D video data was extremely taxing on our machine. Therefore,
-we had to analyze only 20 frames of data per sign and send only a 3rd of the contour points for both training and testing to Azure ML.
-* Platform: Data was inputted and outputted on a Windows app.
+* Performance Considerations (pruning unnecessary data): 
+Recording and analyzing 3D video data was extremely taxing on our workstation. Even with using only 20 frames and a tenth of the contour points for each sign, the performance of our application was laggy. Performance improvements are likely with a better computer.
 
-1. Code used for the 3rd party hand/finger tracking software: https://github.com/LightBuzz/Kinect-Finger-Tracking
+1. 
+Code used for the 3rd party hand/finger tracking software: https://github.com/LightBuzz/Kinect-Finger-Tracking
 
-2. The algorithm we came up with...
+2. 
+The algorithm we came up with...
 *
 
-WIP
