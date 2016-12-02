@@ -11,13 +11,13 @@ The Microsoft Kinect is able to capture high quality, depth-sensitive video data
 This allows for easy hand/finger recongition.
 
 * Finger/Hand Tracking (extracting relevant data): 
-Although some signs in ASL use facial expressions as "part of the sign", signs generally utilize the hands and fingers exclusively. For this project, we only considered the hands and fingers of the person making the sign. An open source library was used to draw contours around the hands and fingers (a contour is a set of points outlining the hands/fingers).[1]
+Although some signs in ASL use facial expressions as "part of the sign", signs generally utilize the hands and fingers exclusively. For this project, we only considered the hands and fingers of the person making the sign. An open source library was used to draw contours around the hands and fingers (a contour is a set of points outlining the hands/fingers).
 Each frame in the video was mapped to a set of 3D contour points.
 
 * Delimiting Signs (semantic filtering/grouping of data): 
 There are no specific delimiters used in ASL to separate one sign (word) from another.
 For Connect, we made the assumption that hands slow down/stop at the start and end of a sign. We created an algorithm that is able to
-consistently separate one word from another based on this assumption.[2]
+consistently separate one word from another based on this assumption.
 Using this algorithm, contiguous frames were grouped together when they were believed to be part of one word/sign. 
 Frames where no sign was detected were labelled as "empty frames" and pruned.
 
@@ -31,17 +31,23 @@ Recording and analyzing 3D video data was extremely taxing on our workstation. E
 * Next Steps:
 Currently, the code is a mess since it was written at a hackathon. The code needs to be tidied up. There is a bug with the API call to Azure ML that needs to be fixed.
 
-### Notes:
 
-1. 
-Code used for the 3rd party hand/finger tracking software: https://github.com/LightBuzz/Kinect-Finger-Tracking
+### Delimiting Hand Signs Algorithm (SASA):
 
-2. 
-The algorithm we came up with to delimit signs is called the "steady-active state algorithm" (SASA). 
-SASA assumes that there will be less hand movement at the start and end of a sign.
+The algorithm we came up with to delimit signs is called the "steady-active state algorithm" (SASA). <br> 
+SASA assumes that there will be less hand movement at the start and end of a sign. It uses this assumption to determine the state of the hand. <br>
+
 SASA recognizes two hand states:
-Active state - the hand is actively moving i.e. during signs
-Steady state - the hand is relatively still i.e. between signs
 
+* Active state - the hand is actively moving (in the middle of a sign):
+In the active state, all the frames are cached.
+To determine if the hand is in steady state, SASA checks whether or not the current average hand position is too close to the previous average hand position. The threshold value is determined via experimentation. If the threshold value is not met for a certain number of continuous frames, the hand is determined to be in steady state. This is to account for parts of a sign where the hand momentarily moves slowly or velocity inconsistencies in the signer (i.e. we don't know if the signer is momentarily moving slowly or reached the end of a sign).
 
+* Steady state - the hand is relatively still (at the edges of a sign/between signs):
+The cached data points now represent one complete sign. The data set is sent down the pipeline to Azure ML. The cache is cleared. The hand remains in steady state until the hand exceeds its threshold value (i.e. hand moves too fast).
 
+Originally the hand begins in steady state. The hand alternates between steady and active for each sign.
+
+### Open source Libraries:
+
+Code used for the 3rd party hand/finger tracking software: https://github.com/LightBuzz/Kinect-Finger-Tracking
